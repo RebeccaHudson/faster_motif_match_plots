@@ -69,7 +69,7 @@ demoTest <- function(scores_file, saved_matches="test_data/test_motif_match_data
   print("setting up data frame for plots ")
   setupDataFrameForPlots(scores_file, motif_library, saved_matches, 2)
   print("making plots from saved motif matches")
-  makePlotsFromSavedMotifMatches(saved_matches_file, motif_library)
+  makePlotsFromSavedMotifMatches(saved_matches, motif_library)
   print("done.")
 }
 
@@ -80,7 +80,7 @@ demoTest <- function(scores_file, saved_matches="test_data/test_motif_match_data
 benchTest <- function(saved_matches="test_data/test_motif_match_data.Rdata"){
   library(rbenchmark) 
   motif_library <- jaspar_motif
-  load(file = saved_matches_file, verbose=TRUE)
+  load(file = saved_matches, verbose=TRUE)
   calls_to_make_plots <- list()
   for ( i in 1:length(outlist) ) {
     one_call <- quote(makeJustOnePlot(outlist[[i]], i , motif_library))
@@ -89,11 +89,12 @@ benchTest <- function(saved_matches="test_data/test_motif_match_data.Rdata"){
     calls_to_make_plots[[i]] <- one_call  
   }
   print(paste("how many calls to benchmark: ", length(calls_to_make_plots)))
+
   tests <- calls_to_make_plots
-	   do.call(benchmark,
-		   c(tests, list(replications=1,
-					 columns=c('test', 'elapsed', 'replications'),
-							       order='elapsed')))
+  do.call(benchmark,
+   c(tests, list(replications=1,
+	 columns=c('test', 'elapsed', 'replications'),
+    	       order='elapsed')))
 }
 
 
