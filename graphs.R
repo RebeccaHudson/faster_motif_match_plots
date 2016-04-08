@@ -54,31 +54,27 @@ makePlotsFromSavedMotifMatches <- function(saved_motif_matches, motif.lib ) {
   }
 }
 
-#scores_file   this should be a subset, if not, get ready to walk away. 
- 
 
-
+#scores_file   should contain atsnp.scores$motif.scores and atsnp.scores$snp.tbl
 demoTest <- function(scores_file){
-  
+  #where preprocessing data will be intermediately stored. 
   saved_matches_file <- "test_data/test_motif_match_data.Rdata"
-  #can be parametrized later, just using this for now. 
-  library(atSNP)  #ensure this is loaded 
+  library(atSNP) 
   data(jaspar_library)
   motif_library <- jaspar_motif 
   print("setting up data frame for plots ")
   setupDataFrameForPlots(scores_file, motif_library, saved_matches_file, 2)
   print("making plots from saved motif matches")
   makePlotsFromSavedMotifMatches(saved_matches_file, motif_library)
-  print("Done with this thing!!")
+  print("done.")  
 }
 
 
-# Note: the documentation for this method got shoved down for readability reasons. 
-# 'quickly', because instead of creating motif.match.dt in here, we read it out of a file. 
-# Hence, motif.match.dt should be passed into this.  
+# Note: previous documentation for this method moved below it for readability.
+#'quickly', because instead of creating motif.match.dt in here, we read it out of a file. 
+# Intended for separate use from the rest of the atSNP package.
 plotMotifMatchQuickly <- function(motif.match.dt, motif.lib ,cex.main = 2, ...) {
-#disable these things to try to speed it up...
-
+# Checks disabled to try to speed this up.
 #if (class(snpid) != "character" | length(snpid)!=1) {
 #    stop("snpid must be a character")
 #  }
@@ -89,12 +85,10 @@ plotMotifMatchQuickly <- function(motif.match.dt, motif.lib ,cex.main = 2, ...) 
 #    stop("Error: The motif is not included in 'motif.lib'.")
 #  }
 
-  #should we actually be storing the motif.match.dt? Can/should this be stored?
- 
-  #most of the arguments up there are for the call below, so are now omitted.
-  #motif.match.dt <- dtMotifMatch(snp.tbl, motif.scores, snpid, motif, ncores = 1, motif.lib = motif.lib)  
+#the first part to be disabled.
+#motif.match.dt <- dtMotifMatch(snp.tbl, motif.scores, snpid, motif, ncores = 1, motif.lib = motif.lib)  
   
-  ##snpid, motif, ref_strand, ref_seq, pwm_ref, snp_strand, snp_seq, pwm_snp, ref_location, snp_location, snp_ref_length) {
+  #can some of this be preprocessed as well? 
   ##Convert ACGT to 1234
   codes <- seq(4)
   names(codes) <- c("A", "C", "G", "T")
@@ -134,7 +128,8 @@ plotMotifMatchQuickly <- function(motif.match.dt, motif.lib ,cex.main = 2, ...) 
     snp_aug_pwm <- revert.columns(snp_aug_pwm)
     snp_aug_match_pwm<-snp_aug_match_pwm_reverse
   }
-  
+ 
+ #actual graphics commands appear to begin here.
   par(mfrow=c(4,1), oma=c(1,1,4,1))
   par(mar=c(1.5, 3, 4, 2))
   plotMotifLogo(pcm2pfm(ref_aug_pwm), "Best match to the reference genome", yaxis=FALSE, xaxis=FALSE, xlab="", ylab="PWM", ...)
