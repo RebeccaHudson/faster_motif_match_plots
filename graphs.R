@@ -14,7 +14,7 @@ getFileNameForPlot <- function(motif_match_dt, motif_library_label){
    return(paste(snpid, motif, motif_library_label, 'svg', sep="."))
 }
 
-#sets up one data frame that would be output by dtMotifScore for each snpid 
+#sets up one data frame output by dtMotifScore for each snpid 
 #in the first rowlimit rows("observations") of the scores_file provided.
 setupDataFrameForPlots <- function(scores_file, motif.lib, outfile,  rowlimit=5){
   load(file=scores_file)   #expecting atsnp.scores$snp.tbl and atsnp.scores$motif_scores
@@ -31,7 +31,6 @@ setupDataFrameForPlots <- function(scores_file, motif.lib, outfile,  rowlimit=5)
     add_one_item <- setupDataForOnePlot(atsnp.scores$snp.tbl, atsnp.scores$motif.scores, snpid, motif, motif.lib)
     outlist[[i]] <- add_one_item
   }
-  #consider parametrizing this file name
   save(outlist, file=outfile)
 }
 
@@ -64,41 +63,32 @@ loadDataForTests <-  function(){
 }
 
 #scores_file   should contain atsnp.scores$motif.scores and atsnp.scores$snp.tbl
-demoTest <- function(scores_file){
-  #where preprocessing data will be intermediately stored. 
-  saved_matches_file <- "test_data/test_motif_match_data.Rdata"
+demoTest <- function(scores_file, saved_matches="test_data/test_motif_match_data.Rdata"){
   loadDataForTests()
   motif_library <- jaspar_motif 
   print("setting up data frame for plots ")
-  setupDataFrameForPlots(scores_file, motif_library, saved_matches_file, 2)
+  setupDataFrameForPlots(scores_file, motif_library, saved_matches, 2)
   print("making plots from saved motif matches")
   makePlotsFromSavedMotifMatches(saved_matches_file, motif_library)
   print("done.")
 }
 
-
-#supposed to be exactly the same as makePlotsFromSavedMotifMatches,
+#Running demoTest with any scores file will result in some "Saved Matches"
+#for use with this benchmarking. Any input size can be checked.
+#(Supposed to be functionally equivalent to makePlotsFromSavedMotifMatches,
 #except designed for benchmarking.
-benchTest <- function(scores_file, saved_matches_file="test_data/test_motif_match_data.Rdata"){
-  #library(microbenchmark)
+benchTest <- function(saved_matches="test_data/test_motif_match_data.Rdata"){
   library(rbenchmark) 
   motif_library <- jaspar_motif
   load(file = saved_matches_file, verbose=TRUE)
   calls_to_make_plots <- list()
   for ( i in 1:length(outlist) ) {
     one_call <- quote(makeJustOnePlot(outlist[[i]], i , motif_library))
-    one_call[[2]] <- outlist[[i]] 
+    one_call[[2]] <- outlist[[i]]  #othewise the index is never evaluated. 
     one_call[[3]] <- i 
     calls_to_make_plots[[i]] <- one_call  
   }
   print(paste("how many calls to benchmark: ", length(calls_to_make_plots)))
-  #microbenchmark(calls_to_make_plots, times=1)
-  #print("here is what the list of calls looks like  ")
-  #print(str(calls_to_make_plots))
-  #setting it up like this results in 1 plot to be generated
-  #tests = list(x=calls_to_make_plots[[i]])
-  
-  #with this version there are at least 2 runs... 
   tests <- calls_to_make_plots
 	   do.call(benchmark,
 		   c(tests, list(replications=1,
