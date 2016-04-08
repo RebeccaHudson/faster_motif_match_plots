@@ -80,17 +80,30 @@ demoTest <- function(scores_file){
 #supposed to be exactly the same as makePlotsFromSavedMotifMatches,
 #except designed for benchmarking.
 benchTest <- function(scores_file, saved_matches_file="test_data/test_motif_match_data.Rdata"){
-  library(microbenchmark)
+  #library(microbenchmark)
+  library(rbenchmark) 
   motif_library <- jaspar_motif
   load(file = saved_matches_file, verbose=TRUE)
   calls_to_make_plots <- list()
   for ( i in 1:length(outlist) ) {
-    one_call <- quote(makeJustOnePlot(outlist[[i]], i, motif_library))
+    one_call <- quote(makeJustOnePlot(outlist[[i]], i , motif_library))
+    one_call[[2]] <- outlist[[i]] 
+    one_call[[3]] <- i 
     calls_to_make_plots[[i]] <- one_call  
   }
-  print(paste("length of calls: ", length(calls_to_make_plots)))
-  #please work:
-  microbenchmark(calls_to_make_plots, times=1)
+  print(paste("how many calls to benchmark: ", length(calls_to_make_plots)))
+  #microbenchmark(calls_to_make_plots, times=1)
+  #print("here is what the list of calls looks like  ")
+  #print(str(calls_to_make_plots))
+  #setting it up like this results in 1 plot to be generated
+  #tests = list(x=calls_to_make_plots[[i]])
+  
+  #with this version there are at least 2 runs... 
+  tests <- calls_to_make_plots
+	   do.call(benchmark,
+		   c(tests, list(replications=1,
+					 columns=c('test', 'elapsed', 'replications'),
+							       order='elapsed')))
 }
 
 
