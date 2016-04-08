@@ -35,38 +35,62 @@ setupDataFrameForPlots <- function(scores_file, motif.lib, outfile,  rowlimit=5)
   save(outlist, file=outfile)
 }
 
+#This has been pulled out for benchmaking purposes. 
+#Covers making the plot from creating the svg file to saving it.
+makeJustOnePlot <- function(plot_making_params, i  ,motif.lib){ 
+  outfile_name <- paste("output_plots", getFileNameForPlot(plot_making_params, 'jaspar'), sep="/")
+  print(paste("Creating plot", i, "in file:", outfile_name, sep = " "))
+  svg(outfile_name)
+  plotMotifMatchQuickly(plot_making_params,  motif.lib)
+  dev.off()
+  return(outfile_name) 
+}
 
 #looking for a file with an 'outlist' of motif match data tables,
 #as produced by dtMotifMatch
 makePlotsFromSavedMotifMatches <- function(saved_motif_matches, motif.lib ) {
   load(file=saved_motif_matches, verbose=TRUE)
-  #consider checking an argument here..
-
   #outlist was just read in above.
+   motif_library <- jaspar_motif
   for(i in 1:length(outlist)){
-    outfile_name <- paste("output_plots", getFileNameForPlot(outlist[[i]], 'jaspar'), sep="/")
-    print(paste("Creating plot", i, "in file:", outfile_name, sep = " "))
-    svg(outfile_name)
-    plotMotifMatchQuickly(outlist[[i]], motif.lib)    #this should be the data frame that comes out of 
-                                                      # of motif.match.dt
-    dev.off() 				             #this should close the graphics device from the previous.. 
+    outfile_name <- makeJustOnePlot(outlist[[i]], i, motif.lib)
     print(paste("..Done with plot ", i, outfile_name) )
   }
 }
 
+loadDataForTests <-  function(){
+  library(atSNP)
+  data(jaspar_library)
+}
 
 #scores_file   should contain atsnp.scores$motif.scores and atsnp.scores$snp.tbl
 demoTest <- function(scores_file){
   #where preprocessing data will be intermediately stored. 
   saved_matches_file <- "test_data/test_motif_match_data.Rdata"
-  library(atSNP) 
-  data(jaspar_library)
+  loadDataForTests()
   motif_library <- jaspar_motif 
   print("setting up data frame for plots ")
   setupDataFrameForPlots(scores_file, motif_library, saved_matches_file, 2)
   print("making plots from saved motif matches")
   makePlotsFromSavedMotifMatches(saved_matches_file, motif_library)
-  print("done.")  
+  print("done.")
+}
+
+
+#supposed to be exactly the same as makePlotsFromSavedMotifMatches,
+#except designed for benchmarking.
+benchTest <- function(scores_file, saved_matches_file="test_data/test_motif_match_data.Rdata"){
+  library(microbenchmark)
+  motif_library <- jaspar_motif
+  load(file = saved_matches_file, verbose=TRUE)
+  calls_to_make_plots <- list()
+  for ( i in 1:length(outlist) ) {
+    one_call <- quote(makeJustOnePlot(outlist[[i]], i, motif_library))
+    calls_to_make_plots[[i]] <- one_call  
+  }
+  print(paste("length of calls: ", length(calls_to_make_plots)))
+  #please work:
+  microbenchmark(calls_to_make_plots, times=1)
 }
 
 
@@ -90,6 +114,7 @@ plotMotifMatchQuickly <- function(motif.match.dt, motif.lib ,cex.main = 2, ...) 
   
   #can some of this be preprocessed as well? 
   ##Convert ACGT to 1234
+  #try to move this block into preprocessing? 
   codes <- seq(4)
   names(codes) <- c("A", "C", "G", "T")
   ref_aug_match_seq_forward_code <- codes[strsplit(motif.match.dt[,ref_aug_match_seq_forward], "")[[1]]]
