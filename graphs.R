@@ -76,7 +76,7 @@ demoTest <- function(scores_file, saved_matches="test_data/test_motif_match_data
 #Running demoTest with any scores file will result in some "Saved Matches"
 #for use with this benchmarking. Any input size can be checked.
 #(Supposed to be functionally equivalent to makePlotsFromSavedMotifMatches,
-#except designed for benchmarking.
+#except designed for benchmarking.)
 benchTest <- function(saved_matches="test_data/test_motif_match_data.Rdata"){
   library(rbenchmark) 
   motif_library <- jaspar_motif
